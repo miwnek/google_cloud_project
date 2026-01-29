@@ -2,15 +2,17 @@ import requests
 import time
 import os
 import json
-#from dotenv import load_dotenv
+import logging
+from google.cloud import logging as cloud_logging
 from google.cloud import firestore
 from google.cloud import pubsub_v1
 
-#load_dotenv()
+client = cloud_logging.Client()
+client.setup_logging()
 
-#PROJECT_ID = os.getenv("PROJECT_ID")
+logger = logging.getLogger("availability_checker")
+logging.basicConfig(level=logging.INFO)
 
-#topic_path = publisher.topic_path(PROJECT_ID, "availability_results")
 db = firestore.Client(database="urlsdb")
 publisher = pubsub_v1.PublisherClient()
 topic_path = publisher.topic_path("original-mason-480715-v1", "availability_results")
@@ -28,10 +30,26 @@ def main(event, context):
         try:
             response = requests.get(url, timeout=5)
             status = response.status_code
-        except Exception:
+            success = 200 <= status < 300
+        except Exception as e:
             status = 0
+            success = False
+            logger.error({
+                "event": "url_check",
+                "url": url,
+                "status": status,
+                "error": str(e),
+            })
 
         response_time = round((time.time() - start) * 1000, 2)
+
+        logger.info({
+            "event": "url_check",
+            "url": url,
+            "status": status,
+            "is_success": success,
+            "response_time_ms": response_time
+        })
 
         result = {
             "url": url,

@@ -10,6 +10,7 @@ google-auth==2.47.0
 google-cloud-core==2.5.0
 google-cloud-firestore==2.23.0
 google-cloud-pubsub==2.34.0
+google-cloud-logging==3.13.0
 googleapis-common-protos==1.72.0
 grpc-google-iam-v1==0.14.3
 grpcio==1.76.0
